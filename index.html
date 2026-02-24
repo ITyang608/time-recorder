@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间记录与间隔计算器</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #3a7bd5, #00d2ff);
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #3a7bd5, #00d2ff);
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+        
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 30px;
+        }
+        
+        .current-time-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+        }
+        
+        .records-section {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+        }
+        
+        .time-display {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .current-time {
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #3a7bd5;
+            margin-bottom: 15px;
+            letter-spacing: 1px;
+        }
+        
+        .date-display {
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        button {
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .record-btn {
+            background: linear-gradient(90deg, #3a7bd5, #4a8be5);
+            color: white;
+            box-shadow: 0 5px 15px rgba(58, 123, 213, 0.3);
+        }
+        
+        .record-btn:hover {
+            background: linear-gradient(90deg, #2a6bc5, #3a7bd5);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(58, 123, 213, 0.4);
+        }
+        
+        .clear-btn {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #dee2e6;
+        }
+        
+        .clear-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-box {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #3a7bd5;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .records-container {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            height: 500px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .records-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #3a7bd5;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .records-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        .record-item {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #3a7bd5;
+            transition: all 0.3s ease;
+        }
+        
+        .record-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .record-time {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .record-interval {
+            display: flex;
+            justify-content: space-between;
+            color: #6c757d;
+            font-size: 1rem;
+        }
+        
+        .interval-value {
+            font-weight: 600;
+            color: #00d2ff;
+        }
+        
+        .empty-records {
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+            padding: 50px 20px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            color: #6c757d;
+            font-size: 0.9rem;
+            border-top: 1px solid #e9ecef;
+            background: #f8f9fa;
+        }
+        
+        .footer-highlight {
+            color: #3a7bd5;
+            font-weight: 600;
+        }
+        
+        /* 自定义滚动条 */
+        .records-list::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .records-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .records-list::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        .records-list::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .current-time {
+                font-size: 2.2rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .pulse {
+            animation: pulse 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-clock"></i> 时间记录与间隔计算器</h1>
+            <p class="subtitle">实时显示当前时间，记录每次时间点，并计算与上次记录的间隔</p>
+        </header>
+        
+        <div class="main-content">
+            <div class="current-time-section">
+                <div class="time-display">
+                    <div class="current-time" id="currentTime">00:00:00</div>
+                    <div class="date-display" id="currentDate">2026年2月24日 星期二</div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="recordCount">0</div>
+                        <div class="stat-label">记录总数</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="lastInterval">--</div>
+                        <div class="stat-label">上次间隔</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="avgInterval">--</div>
+                        <div class="stat-label">平均间隔</div>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="record-btn" id="recordBtn">
+                        <i class="fas fa-plus-circle"></i> 记录当前时间
+                    </button>
+                    <button class="clear-btn" id="clearBtn">
+                        <i class="fas fa-trash-alt"></i> 清空所有记录
+                    </button>
+                </div>
+            </div>
+            
+            <div class="records-section">
+                <div class="records-container">
+                    <div class="records-title">
+                        <i class="fas fa-history"></i> 时间记录历史
+                    </div>
+                    <div class="records-list" id="recordsList">
+                        <div class="empty-records">
+                            <i class="far fa-clock fa-3x" style="margin-bottom: 15px;"></i>
+                            <p>暂无时间记录</p>
+                            <p style="margin-top: 10px;">点击"记录当前时间"按钮开始记录</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>© 2026 时间记录工具 | 最后更新: <span class="footer-highlight" id="lastUpdateTime">--</span></p>
+        </footer>
+    </div>
+
+    <script>
+        // 时间记录器类
+        class TimeRecorder {
+            constructor() {
+                this.records = [];
+                this.loadFromLocalStorage();
+                this.updateLastUpdateTime();
+            }
+            
+            // 获取当前时间
+            getCurrentTime() {
+                const now = new Date();
+                return {
+                    date: now,
+                    timeString: now.toLocaleTimeString('zh-CN'),
+                    dateString: now.toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    }),
+                    timestamp: now.getTime()
+                };
+            }
+            
+            // 记录当前时间
+            recordTime() {
+                const currentTime = this.getCurrentTime();
+                let interval = 0;
+                
+                if (this.records.length > 0) {
+                    const lastRecord = this.records[0];
+                    interval = currentTime.timestamp - lastRecord.timestamp;
+                }
+                
+                // 将新记录添加到数组开头
+                this.records.unshift({
+                    ...currentTime,
+                    interval: interval
+                });
+                
+                this.saveToLocalStorage();
+                this.updateLastUpdateTime();
+                return this.records[0];
+            }
+            
+            // 清空所有记录
+            clearRecords() {
+                this.records = [];
+                this.saveToLocalStorage();
+                this.updateLastUpdateTime();
+            }
+            
+            // 获取记录总数
+            getRecordCount() {
+                return this.records.length;
+            }
+            
+            // 获取上次间隔
+            getLastInterval() {
+                if (this.records.length < 2) return 0;
+                return this.records[0].interval;
+            }
+            
+            // 获取平均间隔
+            getAverageInterval() {
+                if (this.records.length < 2) return 0;
+                
+                const intervals = this.records.slice(0, -1).map(record => record.interval);
+                const sum = intervals.reduce((total, interval) => total + interval, 0);
+                return Math.round(sum / intervals.length);
+            }
+            
+            // 保存到本地存储
+            saveToLocalStorage() {
+                try {
+                    localStorage.setItem('timeRecords', JSON.stringify(this.records));
+                } catch (e) {
+                    console.log('本地存储失败:', e);
+                }
+            }
+            
+            // 从本地存储加载
+            loadFromLocalStorage() {
+                try {
+                    const savedRecords = localStorage.getItem('timeRecords');
+                    if (savedRecords) {
+                        this.records = JSON.parse(savedRecords).map(record => ({
+                            ...record,
+                            date: new Date(record.date)
+                        }));
+                    }
+                } catch (e) {
+                    console.log('从本地存储加载失败:', e);
+                }
+            }
+            
+            // 更新最后更新时间
+            updateLastUpdateTime() {
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('zh-CN');
+                const dateString = now.toLocaleDateString('zh-CN');
+                return `${dateString} ${timeString}`;
+            }
+            
+            // 格式化时间间隔（毫秒转换为可读格式）
+            formatInterval(ms) {
+                if (ms === 0) return "首次记录";
+                
+                const seconds = Math.floor(ms / 1000);
+                const minutes = Math.floor(seconds / 60);
+                const hours = Math.floor(minutes / 60);
+                
+                if (hours > 0) {
+                    const remainingMinutes = minutes % 60;
+                    return `${hours}小时${remainingMinutes}分钟`;
+                } else if (minutes > 0) {
+                    const remainingSeconds = seconds % 60;
+                    return `${minutes}分钟${remainingSeconds}秒`;
+                } else {
+                    return `${seconds}秒`;
+                }
+            }
+        }
+        
+        // 初始化时间记录器
+        const timeRecorder = new TimeRecorder();
+        
+        // DOM元素
+        const currentTimeElement = document.getElementById('currentTime');
+        const currentDateElement = document.getElementById('currentDate');
+        const recordCountElement = document.getElementById('recordCount');
+        const lastIntervalElement = document.getElementById('lastInterval');
+        const avgIntervalElement = document.getElementById('avgInterval');
+        const recordBtn = document.getElementById('recordBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const recordsListElement = document.getElementById('recordsList');
+        const lastUpdateTimeElement = document.getElementById('lastUpdateTime');
+        
+        // 更新当前时间显示
+        function updateCurrentTime() {
+            const currentTime = timeRecorder.getCurrentTime();
+            currentTimeElement.textContent = currentTime.timeString;
+            currentDateElement.textContent = currentTime.dateString;
+            
+            // 更新时间显示样式
+            currentTimeElement.classList.add('pulse');
+            setTimeout(() => {
+                currentTimeElement.classList.remove('pulse');
+            }, 500);
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            recordCountElement.textContent = timeRecorder.getRecordCount();
+            lastIntervalElement.textContent = timeRecorder.formatInterval(timeRecorder.getLastInterval());
+            
+            const avgInterval = timeRecorder.getAverageInterval();
+            avgIntervalElement.textContent = avgInterval > 0 ? timeRecorder.formatInterval(avgInterval) : "--";
+        }
+        
+        // 更新记录列表
+        function updateRecordsList() {
+            const records = timeRecorder.records;
+            
+            if (records.length === 0) {
+                recordsListElement.innerHTML = `
+                    <div class="empty-records">
+                        <i class="far fa-clock fa-3x" style="margin-bottom: 15px;"></i>
+                        <p>暂无时间记录</p>
+                        <p style="margin-top: 10px;">点击"记录当前时间"按钮开始记录</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let recordsHTML = '';
+            records.forEach((record, index) => {
+                const isFirst = index === 0;
+                const intervalText = isFirst ? "首次记录" : timeRecorder.formatInterval(record.interval);
+                const timeLabel = isFirst ? "当前记录" : `记录 ${index + 1}`;
+                
+                recordsHTML += `
+                    <div class="record-item fade-in">
+                        <div class="record-time">
+                            <i class="fas fa-clock" style="color: #3a7bd5; margin-right: 8px;"></i>
+                            ${record.timeString}
+                            <span style="font-size: 0.9rem; color: #6c757d; margin-left: 10px;">${timeLabel}</span>
+                        </div>
+                        <div class="record-interval">
+                            <div>${record.dateString}</div>
+                            <div class="interval-value">${intervalText}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            recordsListElement.innerHTML = recordsHTML;
+            
+            // 添加渐入动画
+            const recordItems = recordsListElement.querySelectorAll('.record-item');
+            recordItems.forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+            });
+        }
+        
+        // 记录按钮点击事件
+        recordBtn.addEventListener('click', () => {
+            // 添加按钮点击效果
+            recordBtn.classList.add('pulse');
+            setTimeout(() => {
+                recordBtn.classList.remove('pulse');
+            }, 500);
+            
+            // 记录时间
+            timeRecorder.recordTime();
+            
+            // 更新显示
+            updateStats();
+            updateRecordsList();
+            lastUpdateTimeElement.textContent = timeRecorder.updateLastUpdateTime();
+        });
+        
+        // 清空按钮点击事件
+        clearBtn.addEventListener('click', () => {
+            if (timeRecorder.getRecordCount() === 0) {
+                alert("暂无记录可清空！");
+                return;
+            }
+            
+            if (confirm("确定要清空所有时间记录吗？此操作不可撤销。")) {
+                timeRecorder.clearRecords();
+                updateStats();
+                updateRecordsList();
+                lastUpdateTimeElement.textContent = timeRecorder.updateLastUpdateTime();
+            }
+        });
+        
+        // 初始化显示
+        function initializeDisplay() {
+            updateCurrentTime();
+            updateStats();
+            updateRecordsList();
+            lastUpdateTimeElement.textContent = timeRecorder.updateLastUpdateTime();
+            
+            // 每秒更新当前时间
+            setInterval(updateCurrentTime, 1000);
+        }
+        
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initializeDisplay);
+        
+        // 添加键盘快捷键支持
+        document.addEventListener('keydown', (event) => {
+            // 按空格键或回车键记录时间
+            if (event.code === 'Space' || event.code === 'Enter') {
+                event.preventDefault();
+                recordBtn.click();
+            }
+            
+            // 按ESC键清空记录
+            if (event.code === 'Escape') {
+                clearBtn.click();
+            }
+        });
+        
+        // 添加使用提示
+        setTimeout(() => {
+            if (timeRecorder.getRecordCount() === 0) {
+                alert("提示：\n1. 点击「记录当前时间」按钮记录时间点\n2. 系统会自动计算与上次记录的间隔\n3. 按空格键或回车键可以快速记录\n4. 所有记录会自动保存到浏览器本地存储");
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
